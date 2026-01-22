@@ -39,4 +39,4 @@ public class HomePage {
         clickMenu(storeMenu);
         return new StorePage(driver);
     }
-               }
+}
