@@ -1,9 +1,13 @@
+
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -15,9 +19,12 @@ public class StorePage {
     private WebDriverWait wait;
     private By search_field = By.id("woocommerce-product-search-field-0");
     private By searchButton = By.cssSelector("button[value='Search']");
-
+    private By storeListPrice = By.tagName("bdi");
     private By addToCartButton = By.cssSelector("a.add_to_cart_button");
     private By cartContainerLink = By.cssSelector("a.cart-container");
+    private By sortingField = By.className("orderby");
+    @FindBy(className = "woocommerce-no-products-found")
+    private WebElement invalidSearchResponse;
 
     public StorePage(WebDriver driver) {
         this.driver = driver;
@@ -104,14 +111,48 @@ public class StorePage {
             String productCategory = product.findElement(By.cssSelector(".ast-woo-product-category"))
                     .getText().trim();
 
+            if (!driver.findElements(By.className("product_title")).isEmpty()) {
+                return true;
+            }
+
             if (!productName.toLowerCase().contains(keyword.toLowerCase()) &&
                     !productCategory.toLowerCase().contains(keyword.toLowerCase())) {
+                return false;
+            }
+
+
+            if (!products.isEmpty()) {
+                return products.stream()
+                        .anyMatch(val -> val.getText().toLowerCase().contains(keyword.toLowerCase()));
+            } else {
+                wait.until(ExpectedConditions.visibilityOf(invalidSearchResponse)).getText();
                 return false;
             }
         }
         return true;
     }
 
+    public boolean isSortedByPrice(boolean sortedAsc) {
+        List<WebElement> storeDel = driver.findElements(By.cssSelector("del bdi"));
+        List<WebElement> currentPrices = driver.findElements(storeListPrice).stream()
+                .filter(val -> !storeDel.contains(val))
+                .toList();
 
+        List<Double> prices = currentPrices.stream()
+                .map(val -> Double.parseDouble(val.getText().replace("$", "")))
+                .toList();
 
+        for (int i = 0; i < prices.size() - 1; i++) {
+            if(sortedAsc && prices.get(i) <= prices.get(i + 1)) return false;
+            if(!sortedAsc && prices.get(i) >= prices.get(i + 1)) return false;
+        }
+        return true;
+    }
+
+    public void sorting(String selectorName){
+        Select selectOption = new Select(driver.findElement(sortingField));
+        driver.findElement(sortingField).sendKeys(Keys.ENTER);
+        selectOption.selectByVisibleText(selectorName);
+    }
 }
+
