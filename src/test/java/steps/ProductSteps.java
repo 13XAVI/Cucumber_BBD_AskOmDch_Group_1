@@ -8,23 +8,21 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.WebDriver;
-import org.testng.Assert;
-import pages.AccountPage;
 import pages.HomePage;
 import pages.StorePage;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class ProductSteps {
     private WebDriver driver = DriverFactory.getDriver();
-    private HomePage homePage = new HomePage(driver);
-    private StorePage storePage = new StorePage(driver);
-    private String filterByPriceResponce;
-    private boolean sortProductResult;
-
+     private  StorePage storePage = new StorePage(driver);
+     private HomePage homePage = new HomePage(driver);
+     private boolean sortProductResult;
+     private String filterByPriceResponce;
 
     @Given("I am on the AskOmDch Store page To Browse Product")
     public void iAmOnTheStorePage() {
@@ -53,12 +51,15 @@ public class ProductSteps {
         String actualMessage = storePage.getSearchResultsMessage();
         assertEquals(actualMessage, expectedMessage, "The displayed message is not as expected.");
     }
+
     @When("I sort products By price")
     public void i_sort_products_using_these_options(DataTable dataTable) {
         List<Map<String, String>> sortOptions = dataTable.asMaps(String.class, String.class);
+
         for (Map<String, String> row : sortOptions) {
             String sortOption = row.get("sort_option");
             storePage.sorting(sortOption);
+
             if (sortOption.equals("Price: low to high")) {
                 sortProductResult = storePage.isSortedByPrice(true);
                 filterByPriceResponce = "Products are not sorted ascendingly by their prices.";
@@ -68,8 +69,10 @@ public class ProductSteps {
             }
         }
     }
+
+
     @Then("The products are sorted in the desired order")
     public void areProductSorted(){
-        if(filterByPriceResponce != null) Assert.assertTrue(sortProductResult, filterByPriceResponce);
+        if(filterByPriceResponce != null) assertTrue(sortProductResult, filterByPriceResponce);
     }
 }

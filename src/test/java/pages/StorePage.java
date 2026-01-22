@@ -1,3 +1,4 @@
+
 package pages;
 
 import org.openqa.selenium.By;
@@ -19,11 +20,13 @@ public class StorePage {
     private WebDriverWait wait;
     private By search_field = By.id("woocommerce-product-search-field-0");
     private By searchButton = By.cssSelector("button[value='Search']");
-
+    private By storeListPrice = By.tagName("bdi");
     private By addToCartButton = By.cssSelector("a.add_to_cart_button");
     private By cartContainerLink = By.cssSelector("a.cart-container");
-    private By storeListPrice = By.tagName("bdi");
     private By sortingField = By.className("orderby");
+    @FindBy(className = "woocommerce-no-products-found")
+    private WebElement invalidSearchResponse;
+
     public StorePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -95,11 +98,6 @@ public class StorePage {
 
     }
 
-    public void sorting(String selectorName){
-        Select selectOption = new Select(driver.findElement(sortingField));
-        driver.findElement(sortingField).sendKeys(Keys.ENTER);
-        selectOption.selectByVisibleText(selectorName);
-    }
 
     public boolean doesProductsContainKeyword(String keyword) {
         List<WebElement> products = wait.until(
@@ -114,8 +112,21 @@ public class StorePage {
             String productCategory = product.findElement(By.cssSelector(".ast-woo-product-category"))
                     .getText().trim();
 
+            if (!driver.findElements(By.className("product_title")).isEmpty()) {
+                return true;
+            }
+
             if (!productName.toLowerCase().contains(keyword.toLowerCase()) &&
                     !productCategory.toLowerCase().contains(keyword.toLowerCase())) {
+                return false;
+            }
+
+
+            if (!products.isEmpty()) {
+                return products.stream()
+                        .anyMatch(val -> val.getText().toLowerCase().contains(keyword.toLowerCase()));
+            } else {
+                wait.until(ExpectedConditions.visibilityOf(invalidSearchResponse)).getText();
                 return false;
             }
         }
@@ -139,4 +150,10 @@ public class StorePage {
         return true;
     }
 
+    public void sorting(String selectorName){
+        Select selectOption = new Select(driver.findElement(sortingField));
+        driver.findElement(sortingField).sendKeys(Keys.ENTER);
+        selectOption.selectByVisibleText(selectorName);
+    }
 }
+
