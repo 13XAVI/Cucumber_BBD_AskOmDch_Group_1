@@ -34,4 +34,9 @@ public class HomePage {
         clickMenu(accountMenu);
         return new AccountPage(driver);
     }
+
+    public StorePage clickToStorePage() {
+        clickMenu(storeMenu);
+        return new StorePage(driver);
+    }
 }
