@@ -14,10 +14,10 @@ Feature: Product Browsing
     Then I should see only products that contain "<keyword>" in their name or category
 
     Examples:
-      | keyword |
-      | Tshirt  |
-      | Jeans   |
-      | Shoes   |
+      | keyword    |
+      | Tshirt     |
+      | Dark Brown |
+      | Shoes      |
 
   @regression @negative
   Scenario: Search for an invalid product
