@@ -1,87 +1,163 @@
-package Page;
+package pages;
 
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 import java.time.Duration;
 
 public class ProductDetailPage {
-    private final WebDriver driver;
-    private final String productName;
+    private WebDriver driver;
     private WebDriverWait wait;
+    private final String expectedProductName;
+    private String message;
 
-    public ProductDetailPage(WebDriver driver, WebDriverWait wait, String productName) {
+    @FindBy(className = "product_title")
+    private WebElement productTitle;
+
+    @FindBy(name = "quantity")
+    private WebElement quantityField;
+
+    @FindBy(name = "add-to-cart")
+    private WebElement addToCartButton;
+
+    @FindBy(className = "woocommerce-message")
+    private WebElement successMessage;
+
+    @FindBy(className = "description_tab")
+    private WebElement descriptionTab;
+
+    @FindBy(className = "additional_information_tab")
+    private WebElement additionalInformationTab;
+
+    @FindBy(className = "reviews_tab")
+    private WebElement reviewsTab;
+
+    @FindBy(name = "comment")
+    private WebElement commentField;
+
+    @FindBy(name = "author")
+    private WebElement authorField;
+
+    @FindBy(name = "email")
+    private WebElement emailField;
+
+    @FindBy(id = "submit")
+    private WebElement submitButton;
+
+    @FindBy(css = ".description p")
+    private WebElement commentDescription;
+
+    @FindBy(css = ".wp-die-message p")
+    private WebElement errorMessage;
+
+    public ProductDetailPage(WebDriver driver, String productName) {
         this.driver = driver;
-        this.productName = productName;
+        this.expectedProductName = productName;
+        PageFactory.initElements(driver, this);
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
-    public boolean productNameCheck(){
-        return productName.equals(driver.findElement(By.className("product_title")).getText());
+
+    public void navigateToProduct(String productSlug) {
+        driver.get("https://askomdch.com/product/" + productSlug + "/");
+        wait.until(ExpectedConditions.visibilityOf(productTitle));
     }
-    public boolean addSelectedProductToCart(int quantity){
-        driver.findElement(By.name("quantity")).clear();
-        driver.findElement(By.name("quantity")).sendKeys(String.valueOf(quantity));
-        driver.findElement(By.name("add-to-cart")).click();
-        String returnMessage = driver.findElement(By.className("woocommerce-message")).getText();
-        returnMessage = returnMessage.substring(returnMessage.indexOf("T") + 2);
-        if(quantity > 1) return returnMessage.contains("“"+ productName +"” have been added to your cart.");
-        else return returnMessage.contains("“"+ productName +"” has been added to your cart.");
+
+    public boolean isOnProductPage() {
+        return wait.until(ExpectedConditions.visibilityOf(productTitle)).getText().equals(expectedProductName);
     }
-    public boolean additionalInformation(){
-        WebElement additionalInformation = driver.findElement(By.className("additional_information_tab"));
-        additionalInformation.click();
-        return additionalInformation.getAttribute("class").contains("active");
+
+    public boolean addSelectedProductToCart(int quantity) {
+        wait.until(ExpectedConditions.visibilityOf(quantityField));
+        quantityField.clear();
+        quantityField.sendKeys(String.valueOf(quantity));
+        addToCartButton.click();
+
+        message = wait.until(ExpectedConditions.visibilityOf(successMessage)).getText();
+        message = message.substring(message.indexOf("\"") + 1);
+        return !message.isEmpty();
     }
-    public boolean review(){
-        WebElement review = driver.findElement(By.className("reviews_tab"));
-        review.click();
-        return review.getAttribute("class").contains("active");
+
+    public String getSuccessMessage() {
+        return message;
     }
-    public void reviewComment(String comment){
-        driver.findElement(By.name("comment")).sendKeys(comment);
+
+    public boolean clickTab(String tabName) {
+        WebElement tab;
+        switch (tabName.toLowerCase()) {
+            case "description":
+                tab = descriptionTab;
+                break;
+            case "additional information":
+                tab = additionalInformationTab;
+                break;
+            case "reviews":
+                tab = reviewsTab;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown tab: " + tabName);
+        }
+
+        wait.until(ExpectedConditions.elementToBeClickable(tab)).click();
+        wait.until(ExpectedConditions.attributeContains(tab, "class", "active"));
+        return tab.getAttribute("class").contains("active");
     }
-    public void name(String authorName){
-        if(!driver.findElements(By.name("author")).isEmpty()) driver.findElement(By.name("author")).sendKeys(authorName);
+
+    public void fillReviewDetails(int rating, String comment, String name, String email) {
+        if (rating >= 1 && rating <= 5) {
+            driver.findElement(By.className("star-" + rating)).click();
+            wait.until(ExpectedConditions.attributeContains(By.className("stars"), "class", "selected"));
+        }
+
+        if (comment != null && !comment.isEmpty()) {
+            wait.until(ExpectedConditions.visibilityOf(commentField));
+            commentField.clear();
+            commentField.sendKeys(comment);
+        }
+
+        if (name != null && !name.isEmpty() && isElementPresent(authorField)) {
+            authorField.clear();
+            authorField.sendKeys(name);
+        }
+
+        if (email != null && !email.isEmpty() && isElementPresent(emailField)) {
+            emailField.clear();
+            emailField.sendKeys(email);
+        }
     }
-    public void email(String email){
-        if(!driver.findElements(By.name("email")).isEmpty()) driver.findElement(By.name("email")).sendKeys(email);
-    }
-    public void starRating(int rating){
-        driver.findElement(By.className("star-" + rating)).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.attributeContains(By.className("stars"), "class","selected"));
-    }
-    public void saveNameAndEmail(){
-        driver.findElement(By.id("wp-comment-cookies-consent")).click();
-    }
-    public String submitComment(){
-        driver.findElement(By.id("submit")).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        try{
+
+    public String submitReview() {
+        wait.until(ExpectedConditions.elementToBeClickable(submitButton)).click();
+
+        try {
             wait.until(ExpectedConditions.alertIsPresent());
-            var alert = driver.switchTo().alert();
+            Alert alert = driver.switchTo().alert();
             String alertText = alert.getText();
             alert.accept();
             return alertText;
         } catch (TimeoutException e0) {
             try {
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".description p")));
-                return driver.findElement(By.cssSelector(".description p")).getText();
-            } catch (TimeoutException e) {
+                return wait.until(ExpectedConditions.visibilityOf(commentDescription)).getText();
+            } catch (TimeoutException e1) {
                 try {
-                    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".wp-die-message p")));
-                    return driver.findElement(By.cssSelector(".wp-die-message p")).getText();
+                    return wait.until(ExpectedConditions.visibilityOf(errorMessage)).getText();
                 } catch (TimeoutException e2) {
-                    return e2.getMessage();
+                    return "Timeout waiting for review submission response";
                 }
-
             }
         }
-
     }
 
+    private boolean isElementPresent(WebElement element) {
+        try {
+            return element.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
