@@ -164,6 +164,13 @@ public class StorePage {
         while (Integer.parseInt(driver.findElement(By.className("to")).getText().replace("$", "")) > endingPrice) {
             driver.findElements(sliderSelector).get(1).sendKeys(Keys.ARROW_LEFT);
         }
+        while (Integer.parseInt(driver.findElement(By.className("from")).getText().replace("$", "")) > startingPrice) {
+            driver.findElements(sliderSelector).get(0).sendKeys(Keys.ARROW_LEFT);
+        }
+
+        while (Integer.parseInt(driver.findElement(By.className("to")).getText().replace("$", "")) < endingPrice) {
+            driver.findElements(sliderSelector).get(1).sendKeys(Keys.ARROW_RIGHT);
+        }
 
         WebElement elementBeforeClick = driver.findElement(storeListPrice);
 

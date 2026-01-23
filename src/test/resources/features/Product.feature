@@ -37,4 +37,6 @@ Feature: Product Browsing
     When I filter products by the following price ranges:
       | min_price | max_price |
       | 10        | 50        |
+      | 50        | 100       |
+      | 100       | 150       |
     Then I should see only products within the specified price range
