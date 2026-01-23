@@ -157,7 +157,6 @@ public class StorePage {
         selectOption.selectByVisibleText(selectorName);
     }
     public boolean filterByPrice(int startingPrice, int endingPrice) {
-        // Set price range
         while (Integer.parseInt(driver.findElement(By.className("from")).getText().replace("$", "")) < startingPrice) {
             driver.findElements(sliderSelector).get(0).sendKeys(Keys.ARROW_RIGHT);
         }
