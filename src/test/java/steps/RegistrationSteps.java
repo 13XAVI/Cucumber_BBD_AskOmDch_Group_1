@@ -18,7 +18,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class RegistrationSteps {
-    private WebDriver driver = DriverFactory.getDriver();
+     private WebDriver driver = DriverFactory.getDriver();
     private HomePage homePage = new HomePage(driver);
     private AccountPage accountPage = new AccountPage(driver);
 

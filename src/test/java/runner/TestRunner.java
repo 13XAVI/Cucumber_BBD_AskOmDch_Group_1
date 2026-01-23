@@ -6,7 +6,7 @@ import io.cucumber.testng.CucumberOptions;
 @CucumberOptions(
         features = "src/test/resources/features",
         glue = {"steps", "hooks"},
-        tags = "@smoke",
+        tags = "@sort",
         plugin = {
                 "pretty",
                 "json:target/cucumber.json",
