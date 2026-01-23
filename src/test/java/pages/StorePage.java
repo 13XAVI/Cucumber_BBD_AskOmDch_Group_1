@@ -18,6 +18,9 @@ public class StorePage {
 
     private WebDriver driver;
     private WebDriverWait wait;
+    private By storeListPrice = By.cssSelector(".astra-shop-summary-wrap bdi");
+    private final By sliderSelector = By.className("ui-slider-handle");
+    private By filterButton = By.cssSelector("button[type='submit']");
 
     @FindBy(id = "woocommerce-product-search-field-0")
     private WebElement searchField;
@@ -149,6 +152,41 @@ public class StorePage {
         select.selectByValue(value);
         wait.until(ExpectedConditions.visibilityOfAllElements(productItems));
     }
+    public boolean filterByPrice(int startingPrice, int endingPrice) {
+        while (Integer.parseInt(driver.findElement(By.className("from")).getText().replace("$", "")) < startingPrice) {
+            driver.findElements(sliderSelector).get(0).sendKeys(Keys.ARROW_RIGHT);
+        }
+
+        while (Integer.parseInt(driver.findElement(By.className("to")).getText().replace("$", "")) > endingPrice) {
+            driver.findElements(sliderSelector).get(1).sendKeys(Keys.ARROW_LEFT);
+        }
+        while (Integer.parseInt(driver.findElement(By.className("from")).getText().replace("$", "")) > startingPrice) {
+            driver.findElements(sliderSelector).get(0).sendKeys(Keys.ARROW_LEFT);
+        }
+
+        while (Integer.parseInt(driver.findElement(By.className("to")).getText().replace("$", "")) < endingPrice) {
+            driver.findElements(sliderSelector).get(1).sendKeys(Keys.ARROW_RIGHT);
+        }
+
+        WebElement elementBeforeClick = driver.findElement(storeListPrice);
+
+        driver.findElements(filterButton).get(1).click();
+        wait.until(ExpectedConditions.stalenessOf(elementBeforeClick));
+
+        wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(storeListPrice));
+
+        List<String> currentPrices = driver.findElements(storeListPrice).stream()
+                .filter(val -> !driver.findElements(By.cssSelector("del bdi")).contains(val))
+                .map(val -> val.getText().replace("$", ""))
+                .toList();
+
+        return currentPrices.stream()
+                .allMatch(val -> {
+                    double price = Double.parseDouble(val);
+                    return price >= startingPrice && price <= endingPrice;
+                });
+    }
+}
 
     public List<WebElement> getVisibleProductsByCategory(String category) {
         String categorySlug = category.toLowerCase()
