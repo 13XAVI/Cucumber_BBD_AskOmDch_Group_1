@@ -18,9 +18,6 @@ public class StorePage {
 
     private WebDriver driver;
     private WebDriverWait wait;
-    private By storeListPrice = By.cssSelector(".astra-shop-summary-wrap bdi");
-    private final By sliderSelector = By.className("ui-slider-handle");
-    private By filterButton = By.cssSelector("button[type='submit']");
 
     @FindBy(id = "woocommerce-product-search-field-0")
     private WebElement searchField;
@@ -28,8 +25,6 @@ public class StorePage {
     @FindBy(css = "button[value='Search']")
     private WebElement searchButton;
 
-    @FindBy(tagName = "bdi")
-    private List<WebElement> storeListPrices;
 
     @FindBy(css = "a.add_to_cart_button")
     private WebElement addToCartButton;
@@ -72,6 +67,9 @@ public class StorePage {
 
     @FindBy(className = "product_title")
     private List<WebElement> productTitleElements;
+    private final By sliderSelector = By.className("ui-slider-handle");
+    private By filterButton = By.cssSelector("button[type='submit']");
+    private By storeListPrice = By.cssSelector(".astra-shop-summary-wrap bdi");
 
     public StorePage(WebDriver driver) {
         this.driver = driver;
@@ -131,7 +129,7 @@ public class StorePage {
     }
 
     public boolean isSortedByPrice(boolean sortedAsc) {
-        List<WebElement> currentPrices = storeListPrices.stream()
+        List<WebElement> currentPrices = driver.findElements(storeListPrice).stream()
                 .filter(val -> !deletedPrices.contains(val))
                 .toList();
 
@@ -152,6 +150,73 @@ public class StorePage {
         select.selectByValue(value);
         wait.until(ExpectedConditions.visibilityOfAllElements(productItems));
     }
+
+    public List<WebElement> getVisibleProductsByCategory(String category) {
+        String categorySlug = category.toLowerCase()
+                .replace("'", "")
+                .replace("'", "")
+                .replace(" ", "-");
+
+        wait.until(ExpectedConditions.visibilityOf(productsContainer));
+        wait.until(ExpectedConditions.visibilityOfAllElements(productItems));
+
+        return productItems.stream()
+                .filter(WebElement::isDisplayed)
+                .filter(product -> {
+                    String productClass = product.getAttribute("class").toLowerCase();
+                    return productClass.contains("product_cat-" + categorySlug);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public int getDisplayedProductCountByCategory(String category) {
+        return getVisibleProductsByCategory(category).size();
+    }
+
+    public StorePage clickToAddToCart() {
+        WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(addToCartButton));
+        addButton.click();
+        wait.until(driver -> addButton.getAttribute("class").contains("added"));
+        return this;
+    }
+
+    public void clickToViewCart() {
+        WebElement cartLink = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(cartContainerLink));
+        cartLink.click();
+    }
+    public void addProductToCartByName(String productName) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        List<WebElement> products = driver.findElements(
+                By.cssSelector(".product")
+        );
+
+        for (WebElement product : products) {
+
+            String name = product.findElement(By.cssSelector(".woocommerce-loop-product__title"))
+                    .getText()
+                    .trim();
+
+            if (name.equalsIgnoreCase(productName)) {
+                WebElement addButton = product.findElement(
+                        By.cssSelector("a.add_to_cart_button, button.add_to_cart_button")
+                );
+
+                wait.until(ExpectedConditions.elementToBeClickable(addButton)).click();
+
+                wait.until(ExpectedConditions.attributeContains(
+                        addButton, "class", "added"
+                ));
+
+                return;
+            }
+
+        }
+
+        throw new RuntimeException("Product not found: " + productName);
+    }
+
     public boolean filterByPrice(int startingPrice, int endingPrice) {
         while (Integer.parseInt(driver.findElement(By.className("from")).getText().replace("$", "")) < startingPrice) {
             driver.findElements(sliderSelector).get(0).sendKeys(Keys.ARROW_RIGHT);
@@ -185,28 +250,5 @@ public class StorePage {
                     double price = Double.parseDouble(val);
                     return price >= startingPrice && price <= endingPrice;
                 });
-    }
-}
-
-    public List<WebElement> getVisibleProductsByCategory(String category) {
-        String categorySlug = category.toLowerCase()
-                .replace("'", "")
-                .replace("'", "")
-                .replace(" ", "-");
-
-        wait.until(ExpectedConditions.visibilityOf(productsContainer));
-        wait.until(ExpectedConditions.visibilityOfAllElements(productItems));
-
-        return productItems.stream()
-                .filter(WebElement::isDisplayed)
-                .filter(product -> {
-                    String productClass = product.getAttribute("class").toLowerCase();
-                    return productClass.contains("product_cat-" + categorySlug);
-                })
-                .collect(Collectors.toList());
-    }
-
-    public int getDisplayedProductCountByCategory(String category) {
-        return getVisibleProductsByCategory(category).size();
     }
 }

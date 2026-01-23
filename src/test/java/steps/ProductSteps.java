@@ -20,10 +20,10 @@ import static org.testng.Assert.assertTrue;
 
 public class ProductSteps {
     private WebDriver driver = DriverFactory.getDriver();
-     private  StorePage storePage = new StorePage(driver);
-     private HomePage homePage = new HomePage(driver);
-     private boolean sortProductResult;
-     private String filterByPriceResponce;
+    private  StorePage storePage = new StorePage(driver);
+    private HomePage homePage = new HomePage(driver);
+    private boolean sortProductResult;
+    private String filterByPriceResponce;
     private boolean priceRangeResult;
     private String priceRangeResultMessage;
 
@@ -57,7 +57,7 @@ public class ProductSteps {
     }
 
     @When("I sort products By price")
-    public void iSortProductsUsingTheseOptions(DataTable dataTable) {
+    public void i_sort_products_using_these_options(DataTable dataTable) {
         List<Map<String, String>> sortOptions = dataTable.asMaps(String.class, String.class);
 
         for (Map<String, String> row : sortOptions) {
@@ -79,23 +79,6 @@ public class ProductSteps {
         if(filterByPriceResponce != null) assertTrue(sortProductResult, filterByPriceResponce);
     }
 
-    @When("I filter products within the price range")
-    public void i_filter_products_by_the_following_price_ranges(DataTable dataTable) {
-        List<Map<String, String>> priceRanges = dataTable.asMaps(String.class, String.class);
-        for (Map<String, String> row : priceRanges) {
-            int minPrice = Integer.parseInt(row.get("min_price"));
-            int maxPrice = Integer.parseInt(row.get("max_price"));
-            priceRangeResult = storePage.filterByPrice(minPrice, maxPrice);
-            priceRangeResultMessage = "Should find products in price range " + minPrice + " to " + maxPrice;
-            Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
-        }
-    }
-
-    @Then("I should see only products within the specified price range")
-    public void iShouldSeeOnlyProductsWithinTheSpecifiedPriceRange() {
-        Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
-    }
-}
     @When("I select and click category {string} from the category filter")
     public void selectCategoryFilter(String category) {
         String categoryValue = category.toLowerCase()
@@ -118,6 +101,23 @@ public class ProductSteps {
                         ", but found: " + actualCount +
                         " products for category: " + category
         );
+    }
+
+    @When("I filter products within the price range")
+    public void i_filter_products_by_the_following_price_ranges(DataTable dataTable) {
+        List<Map<String, String>> priceRanges = dataTable.asMaps(String.class, String.class);
+        for (Map<String, String> row : priceRanges) {
+            int minPrice = Integer.parseInt(row.get("min_price"));
+            int maxPrice = Integer.parseInt(row.get("max_price"));
+            priceRangeResult = storePage.filterByPrice(minPrice, maxPrice);
+            priceRangeResultMessage = "Should find products in price range " + minPrice + " to " + maxPrice;
+            Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
+        }
+    }
+
+    @Then("I should see only products within the specified price range")
+    public void iShouldSeeOnlyProductsWithinTheSpecifiedPriceRange() {
+        Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
     }
 
 }

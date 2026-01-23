@@ -33,7 +33,7 @@ Feature: Product Browsing
       | Sort by price: low to high |
       | Sort by price: high to low |
     Then The products are sorted in the desired order
-  @filter
+  @filterPrice
   Scenario: Filter products by different price ranges
     When I filter products within the price range
       | min_price | max_price |
