@@ -24,6 +24,7 @@ public class ProductSteps {
      private boolean sortProductResult;
      private String filterByPriceResponce;
 
+
     @Given("I am on the AskOmDch Store page To Browse Product")
     public void iAmOnTheStorePage() {
         homePage.clickToStorePage();
@@ -70,9 +71,33 @@ public class ProductSteps {
         }
     }
 
-
     @Then("The products are sorted in the desired order")
     public void areProductSorted(){
         if(filterByPriceResponce != null) assertTrue(sortProductResult, filterByPriceResponce);
     }
+
+    @When("I select and click category {string} from the category filter")
+    public void selectCategoryFilter(String category) {
+        String categoryValue = category.toLowerCase()
+                .replace("'", "")
+                .replace("'", "")
+                .replace(" ", "-");
+        storePage.selectCategoryByValue(categoryValue);
+    }
+
+
+
+    @Then("I should see {int} products in the {string} category")
+    public void iShouldSeeProductsInCategory(int expectedCount, String category) {
+        int actualCount = storePage.getDisplayedProductCountByCategory(category);
+
+        assertEquals(
+                actualCount,
+                expectedCount,
+                "Expected product count: " + expectedCount +
+                        ", but found: " + actualCount +
+                        " products for category: " + category
+        );
+    }
+
 }
