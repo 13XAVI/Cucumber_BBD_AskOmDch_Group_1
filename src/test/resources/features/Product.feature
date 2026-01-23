@@ -32,3 +32,9 @@ Feature: Product Browsing
       | Sort by price: low to high |
       | Sort by price: high to low |
     Then The products are sorted in the desired order
+  @filter
+  Scenario: Filter products by different price ranges
+    When I filter products by the following price ranges:
+      | min_price | max_price |
+      | 10        | 50        |
+    Then I should see only products within the specified price range

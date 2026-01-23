@@ -8,6 +8,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.WebDriver;
+import org.testng.Assert;
 import pages.HomePage;
 import pages.StorePage;
 
@@ -23,6 +24,8 @@ public class ProductSteps {
      private HomePage homePage = new HomePage(driver);
      private boolean sortProductResult;
      private String filterByPriceResponce;
+    private boolean priceRangeResult;
+    private String priceRangeResultMessage;
 
     @Given("I am on the AskOmDch Store page To Browse Product")
     public void iAmOnTheStorePage() {
@@ -53,7 +56,7 @@ public class ProductSteps {
     }
 
     @When("I sort products By price")
-    public void i_sort_products_using_these_options(DataTable dataTable) {
+    public void iSortProductsUsingTheseOptions(DataTable dataTable) {
         List<Map<String, String>> sortOptions = dataTable.asMaps(String.class, String.class);
 
         for (Map<String, String> row : sortOptions) {
@@ -74,5 +77,23 @@ public class ProductSteps {
     @Then("The products are sorted in the desired order")
     public void areProductSorted(){
         if(filterByPriceResponce != null) assertTrue(sortProductResult, filterByPriceResponce);
+    }
+
+    @When("I filter products within the price range")
+    @When("I filter products by the following price ranges:")
+    public void i_filter_products_by_the_following_price_ranges(DataTable dataTable) {
+        List<Map<String, String>> priceRanges = dataTable.asMaps(String.class, String.class);
+        for (Map<String, String> row : priceRanges) {
+            int minPrice = Integer.parseInt(row.get("min_price"));
+            int maxPrice = Integer.parseInt(row.get("max_price"));
+            priceRangeResult = storePage.filterByPrice(minPrice, maxPrice);
+            priceRangeResultMessage = "Should find products in price range " + minPrice + " to " + maxPrice;
+            Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
+        }
+    }
+
+    @Then("I should see only products within the specified price range")
+    public void iShouldSeeOnlyProductsWithinTheSpecifiedPriceRange() {
+        Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
     }
 }
