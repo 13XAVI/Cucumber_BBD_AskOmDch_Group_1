@@ -1,11 +1,9 @@
-package pages;
+package Page;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -13,215 +11,77 @@ import java.time.Duration;
 
 public class ProductDetailPage {
     private final WebDriver driver;
-    private final WebDriverWait wait;
     private final String productName;
-    @FindBy(className = "product_title")
-    private WebElement productTitle;
+    private WebDriverWait wait;
 
-    @FindBy(name = "quantity")
-    private WebElement quantityInput;
-
-    @FindBy(name = "add-to-cart")
-    private WebElement addToCartButton;
-
-    @FindBy(className = "woocommerce-message")
-    private WebElement successMessage;
-
-    @FindBy(className = "additional_information_tab")
-    private WebElement additionalInfoTab;
-
-    @FindBy(className = "reviews_tab")
-    private WebElement reviewsTab;
-
-    @FindBy(name = "comment")
-    private WebElement commentField;
-
-    @FindBy(name = "author")
-    private WebElement authorNameField;
-
-    @FindBy(name = "email")
-    private WebElement emailField;
-
-    @FindBy(id = "wp-comment-cookies-consent")
-    private WebElement saveDataCheckbox;
-
-    @FindBy(id = "submit")
-    private WebElement submitButton;
-
-    @FindBy(className = "stars")
-    private WebElement starsContainer;
-
-    @FindBy(css = ".description p")
-    private WebElement reviewDescription;
-
-    @FindBy(css = ".wp-die-message p")
-    private WebElement errorMessage;
-    private final By productTitleLocator = By.className("product_title");
-    private final By successMessageLocator = By.className("woocommerce-message");
-
-    public ProductDetailPage(WebDriver driver, String productName) {
+    public ProductDetailPage(WebDriver driver, WebDriverWait wait, String productName) {
         this.driver = driver;
         this.productName = productName;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        PageFactory.initElements(driver, this);
     }
-
-    public boolean productNameCheck() {
-        String actualProductName = wait.until(
-                ExpectedConditions.visibilityOf(productTitle)
-        ).getText();
-        return productName.equals(actualProductName);
+    public boolean productNameCheck(){
+        return productName.equals(driver.findElement(By.className("product_title")).getText());
     }
-
-    public String getProductName() {
-        return wait.until(ExpectedConditions.visibilityOf(productTitle)).getText();
+    public boolean addSelectedProductToCart(int quantity){
+        driver.findElement(By.name("quantity")).clear();
+        driver.findElement(By.name("quantity")).sendKeys(String.valueOf(quantity));
+        driver.findElement(By.name("add-to-cart")).click();
+        String returnMessage = driver.findElement(By.className("woocommerce-message")).getText();
+        returnMessage = returnMessage.substring(returnMessage.indexOf("T") + 2);
+        if(quantity > 1) return returnMessage.contains("“"+ productName +"” have been added to your cart.");
+        else return returnMessage.contains("“"+ productName +"” has been added to your cart.");
     }
-
-    public boolean addSelectedProductToCart(int quantity) {
-        wait.until(ExpectedConditions.visibilityOf(quantityInput));
-        quantityInput.clear();
-        quantityInput.sendKeys(String.valueOf(quantity));
-
-        addToCartButton.click();
-
-        WebElement messageElement = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(successMessageLocator)
-        );
-        String returnMessage = messageElement.getText();
-        returnMessage = returnMessage.substring(returnMessage.indexOf("\"") + 1);
-
-        if (quantity > 1) {
-            return returnMessage.contains("\"" + productName + "\" have been added to your cart.");
-        } else {
-            return returnMessage.contains("\"" + productName + "\" has been added to your cart.");
-        }
+    public boolean additionalInformation(){
+        WebElement additionalInformation = driver.findElement(By.className("additional_information_tab"));
+        additionalInformation.click();
+        return additionalInformation.getAttribute("class").contains("active");
     }
-
-    public String getAddToCartMessage() {
-        return wait.until(ExpectedConditions.visibilityOf(successMessage)).getText();
+    public boolean review(){
+        WebElement review = driver.findElement(By.className("reviews_tab"));
+        review.click();
+        return review.getAttribute("class").contains("active");
     }
-
-    public boolean additionalInformation() {
-        wait.until(ExpectedConditions.elementToBeClickable(additionalInfoTab));
-        additionalInfoTab.click();
-
-        wait.until(ExpectedConditions.attributeContains(additionalInfoTab, "class", "active"));
-        return additionalInfoTab.getAttribute("class").contains("active");
+    public void reviewComment(String comment){
+        driver.findElement(By.name("comment")).sendKeys(comment);
     }
-
-    public boolean review() {
-        wait.until(ExpectedConditions.elementToBeClickable(reviewsTab));
-        reviewsTab.click();
-
-        wait.until(ExpectedConditions.attributeContains(reviewsTab, "class", "active"));
-        return reviewsTab.getAttribute("class").contains("active");
+    public void name(String authorName){
+        if(!driver.findElements(By.name("author")).isEmpty()) driver.findElement(By.name("author")).sendKeys(authorName);
     }
-
-    public ProductDetailPage reviewComment(String comment) {
-        wait.until(ExpectedConditions.visibilityOf(commentField)).sendKeys(comment);
-        return this;
+    public void email(String email){
+        if(!driver.findElements(By.name("email")).isEmpty()) driver.findElement(By.name("email")).sendKeys(email);
     }
-
-    /**
-     * Enter reviewer name (if field is present)
-     */
-    public ProductDetailPage name(String authorName) {
-        try {
-            if (authorNameField.isDisplayed()) {
-                authorNameField.sendKeys(authorName);
-            }
-        } catch (Exception e) {
-            // Field not present (user might be logged in)
-        }
-        return this;
+    public void starRating(int rating){
+        driver.findElement(By.className("star-" + rating)).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.attributeContains(By.className("stars"), "class","selected"));
     }
-
-    /**
-     * Enter reviewer email (if field is present)
-     */
-    public ProductDetailPage email(String email) {
-        try {
-            if (emailField.isDisplayed()) {
-                emailField.sendKeys(email);
-            }
-        } catch (Exception e) {
-            // Field not present (user might be logged in)
-        }
-        return this;
+    public void saveNameAndEmail(){
+        driver.findElement(By.id("wp-comment-cookies-consent")).click();
     }
-
-    public ProductDetailPage starRating(int rating) {
-        By starLocator = By.className("star-" + rating);
-        wait.until(ExpectedConditions.elementToBeClickable(starLocator)).click();
-        wait.until(ExpectedConditions.attributeContains(starsContainer, "class", "selected"));
-        return this;
-    }
-
-    public ProductDetailPage saveNameAndEmail() {
-        if (!saveDataCheckbox.isSelected()) {
-            saveDataCheckbox.click();
-        }
-        return this;
-    }
-
-    public String submitComment() {
-        submitButton.click();
-        if (isAlertPresent()) {
-            return handleAlert();
-        }
-        if (isElementVisible(reviewDescription)) {
-            return reviewDescription.getText();
-        }
-
-        if (isElementVisible(errorMessage)) {
-            return errorMessage.getText();
-        }
-
-        return "No response message found";
-    }
-
-    private boolean isAlertPresent() {
-        try {
+    public String submitComment(){
+        driver.findElement(By.id("submit")).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        try{
             wait.until(ExpectedConditions.alertIsPresent());
-            return true;
-        } catch (TimeoutException e) {
-            return false;
+            var alert = driver.switchTo().alert();
+            String alertText = alert.getText();
+            alert.accept();
+            return alertText;
+        } catch (TimeoutException e0) {
+            try {
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".description p")));
+                return driver.findElement(By.cssSelector(".description p")).getText();
+            } catch (TimeoutException e) {
+                try {
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".wp-die-message p")));
+                    return driver.findElement(By.cssSelector(".wp-die-message p")).getText();
+                } catch (TimeoutException e2) {
+                    return e2.getMessage();
+                }
+
+            }
         }
+
     }
 
-    private String handleAlert() {
-        var alert = driver.switchTo().alert();
-        String alertText = alert.getText();
-        alert.accept();
-        return alertText;
-    }
-
-    private boolean isElementVisible(WebElement element) {
-        try {
-            wait.until(ExpectedConditions.visibilityOf(element));
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
-    }
-    /**
-     * Navigate to product page by slug
-     */
-    public ProductDetailPage navigateToProduct(String productSlug) {
-        driver.get("https://askomdch.com/product/" + productSlug + "/");
-        wait.until(ExpectedConditions.visibilityOfElementLocated(productTitleLocator));
-        return this;
-    }
-
-    /**
-     * Check if currently on the correct product page
-     */
-    public boolean isOnProductPage() {
-        try {
-            wait.until(ExpectedConditions.visibilityOf(productTitle));
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
-    }
 }
