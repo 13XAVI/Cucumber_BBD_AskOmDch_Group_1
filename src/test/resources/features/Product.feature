@@ -14,10 +14,11 @@ Feature: Product Browsing
     Then I should see only products that contain "<keyword>" in their name or category
 
     Examples:
-      | keyword    |
-      | Tshirt     |
-      | Dark Brown |
-      | Shoes      |
+
+      | keyword |
+      | Tshirt  |
+      | jeans   |
+      | Shoes   |
 
   @regression @negative
   Scenario: Search for an invalid product
@@ -34,9 +35,23 @@ Feature: Product Browsing
     Then The products are sorted in the desired order
   @filter
   Scenario: Filter products by different price ranges
-    When I filter products by the following price ranges:
+    When I filter products within the price range
       | min_price | max_price |
       | 10        | 50        |
       | 50        | 100       |
       | 100       | 150       |
     Then I should see only products within the specified price range
+
+
+  @filterCategory
+  Scenario Outline: Filter products by category and verify product count
+    When I select and click category "<category>" from the category filter
+    Then I should see <count> products in the "<category>" category
+    Examples:
+      | category            | count |
+      | Accessories         | 3     |
+      | Men's Shirts        | 1     |
+      | Purses And Handbags | 1     |
+      | Women's Shoes       | 1     |
+
+

@@ -27,6 +27,7 @@ public class ProductSteps {
     private boolean priceRangeResult;
     private String priceRangeResultMessage;
 
+
     @Given("I am on the AskOmDch Store page To Browse Product")
     public void iAmOnTheStorePage() {
         homePage.clickToStorePage();
@@ -73,14 +74,12 @@ public class ProductSteps {
         }
     }
 
-
     @Then("The products are sorted in the desired order")
     public void areProductSorted(){
         if(filterByPriceResponce != null) assertTrue(sortProductResult, filterByPriceResponce);
     }
 
     @When("I filter products within the price range")
-    @When("I filter products by the following price ranges:")
     public void i_filter_products_by_the_following_price_ranges(DataTable dataTable) {
         List<Map<String, String>> priceRanges = dataTable.asMaps(String.class, String.class);
         for (Map<String, String> row : priceRanges) {
@@ -96,4 +95,29 @@ public class ProductSteps {
     public void iShouldSeeOnlyProductsWithinTheSpecifiedPriceRange() {
         Assert.assertTrue(priceRangeResult, priceRangeResultMessage);
     }
+}
+    @When("I select and click category {string} from the category filter")
+    public void selectCategoryFilter(String category) {
+        String categoryValue = category.toLowerCase()
+                .replace("'", "")
+                .replace("'", "")
+                .replace(" ", "-");
+        storePage.selectCategoryByValue(categoryValue);
+    }
+
+
+
+    @Then("I should see {int} products in the {string} category")
+    public void iShouldSeeProductsInCategory(int expectedCount, String category) {
+        int actualCount = storePage.getDisplayedProductCountByCategory(category);
+
+        assertEquals(
+                actualCount,
+                expectedCount,
+                "Expected product count: " + expectedCount +
+                        ", but found: " + actualCount +
+                        " products for category: " + category
+        );
+    }
+
 }

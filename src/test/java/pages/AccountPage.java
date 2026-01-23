@@ -35,6 +35,7 @@ public class AccountPage {
     @FindBy(name = "register")
     private WebElement registerButton;
 
+    // Existing text elements
     @FindBy(css = ".wp-block-cover__inner-container h1")
     private WebElement accountHeader;
 
@@ -45,13 +46,29 @@ public class AccountPage {
     private WebElement errorMessage;
 
 
+    @FindBy(linkText = "Lost your password?")
+    private WebElement lostPasswordLink;
+
+    @FindBy(id = "user_login")
+    private WebElement resetUsernameOrEmailField;
+
+    @FindBy(css = "button[value='Reset password']")
+    private WebElement resetPasswordButton;
+
+    @FindBy(css = ".woocommerce-message")
+    private WebElement successMessage;
+
+    @FindBy(css = ".woocommerce-error li")
+    private WebElement resetErrorMessage;
+
+
     public AccountPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         PageFactory.initElements(driver, this);
     }
 
-
+    // Existing login methods
     public AccountPage enterLoginUsername(String value) {
         usernameField.sendKeys(value);
         return this;
@@ -66,7 +83,6 @@ public class AccountPage {
         loginButton.click();
         return this;
     }
-
 
     public AccountPage enterRegUsername(String value) {
         regUsernameField.sendKeys(value);
@@ -88,7 +104,7 @@ public class AccountPage {
         return this;
     }
 
-
+    // Existing getter methods
     public String getWelcomeText() {
         return wait.until(ExpectedConditions.visibilityOf(welcomeText)).getText();
     }
@@ -101,4 +117,38 @@ public class AccountPage {
         return accountHeader.getText();
     }
 
+
+    public AccountPage clickLostPassword() {
+        wait.until(ExpectedConditions.elementToBeClickable(lostPasswordLink)).click();
+        return this;
+    }
+
+    public AccountPage enterResetUsernameOrEmail(String value) {
+        wait.until(ExpectedConditions.visibilityOf(resetUsernameOrEmailField)).clear();
+        resetUsernameOrEmailField.sendKeys(value);
+        return this;
+    }
+
+    public AccountPage clickResetPassword() {
+        wait.until(ExpectedConditions.elementToBeClickable(resetPasswordButton)).click();
+        return this;
+    }
+
+    public String getSuccessMessage() {
+        return wait.until(ExpectedConditions.visibilityOf(successMessage)).getText();
+    }
+
+    public String getResetErrorMessage() {
+        return wait.until(ExpectedConditions.visibilityOf(resetErrorMessage)).getText();
+    }
+
+    public boolean isOnPasswordResetPage() {
+        try {
+            wait.until(ExpectedConditions.visibilityOf(resetUsernameOrEmailField));
+            return driver.getCurrentUrl().contains("lost-password") ||
+                    resetUsernameOrEmailField.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
