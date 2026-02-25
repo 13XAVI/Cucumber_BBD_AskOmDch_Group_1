@@ -21,10 +21,17 @@ Feature: Product Browsing
       | Shoes   |
 
   @regression @negative
-  Scenario: Search for an invalid product
-    When I enter a search keyword "InvalidProduct" in the search box
+  Scenario Outline: Search for an invalid product
+    When I enter a search keyword "<Invalidkeyword>" in the search box
     And I click the search button
     Then I should see a message "No products were found matching your selection."
+    And  the product Search Header Should Be String "<searchText>"
+
+    Examples:
+      | Invalidkeyword | searchText |
+      | hello          | hello      |
+      | invalidkey     | invalidkey |
+
 
   @sort
   Scenario: Sort products using different options
@@ -33,6 +40,7 @@ Feature: Product Browsing
       | Sort by price: low to high |
       | Sort by price: high to low |
     Then The products are sorted in the desired order
+
   @filterPrice
   Scenario: Filter products by different price ranges
     When I filter products within the price range

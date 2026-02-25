@@ -56,6 +56,8 @@ public class ProductSteps {
         assertEquals(actualMessage, expectedMessage, "The displayed message is not as expected.");
     }
 
+
+
     @When("I sort products By price")
     public void i_sort_products_using_these_options(DataTable dataTable) {
         List<Map<String, String>> sortOptions = dataTable.asMaps(String.class, String.class);

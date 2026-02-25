@@ -65,6 +65,9 @@ public class StorePage {
     @FindBy(className = "woocommerce-no-products-found")
     private WebElement invalidSearchResponse;
 
+    @FindBy(className = ".woocommerce-products-header__title")
+    private WebElement productSearchHeader;
+
     @FindBy(className = "product_title")
     private List<WebElement> productTitleElements;
     private final By sliderSelector = By.className("ui-slider-handle");
@@ -92,6 +95,10 @@ public class StorePage {
         return wait.until(ExpectedConditions.visibilityOf(searchResultsMessage))
                 .getText()
                 .trim();
+    }
+
+    public String getProductSearchHeader() {
+        return productSearchHeader.getText();
     }
 
     public void sorting(String selectorName) {

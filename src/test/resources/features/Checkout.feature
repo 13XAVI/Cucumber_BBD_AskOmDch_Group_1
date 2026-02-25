@@ -8,7 +8,7 @@ Feature: Checkout
     Given I have a product in the cart
     And I am on the checkout page
 
-  @smoke @positive
+  @smoke @positive @mwarabu
   Scenario: Place order on checkout page
     When I complete checkout with valid billing details:
       | field          | value            |

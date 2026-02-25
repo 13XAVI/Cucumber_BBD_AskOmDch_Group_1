@@ -1,6 +1,7 @@
 package steps;
 
 import factory.DriverFactory;
+import io.cucumber.java.PendingException;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
@@ -123,5 +124,17 @@ public class ProductDetailSteps {
         assertFalse(actualResponse.isEmpty(), "Review submission response is empty");
         assertFalse(actualResponse.contains("Timeout waiting for review submission response"),
                 "Review submission timed out");
+    }
+
+    @And("the product Search Header Should Be String  {string}")
+    public void theProductSearchHeaderShouldBeStringSearchText() {
+        // Write code here that turns the phrase above into concrete actions
+        throw new PendingException();
+    }
+
+    @And("the product Search Header Should Be String {string}")
+    public void theProductSearchHeaderShouldBeString(String arg0) {
+        // Write code here that turns the phrase above into concrete actions
+        throw new PendingException();
     }
 }
